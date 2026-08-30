@@ -1,0 +1,35 @@
+{
+  "name": "dsh-desktop-notify",
+  "version": "1.0.0",
+  "description": "Desktop notifications for DeepSeek Harness: turn finished/failed, approval needed, tool failures, goal completed/blocked, workflow finished (Linux notify-send via swaync/dunst/mako, macOS osascript)",
+  "type": "module",
+  "main": "lib/index.js",
+  "exports": {
+    ".": "./lib/index.js",
+    "./cordis.patch.yml": "./cordis.patch.yml",
+    "./package.json": "./package.json"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  },
+  "files": [
+    "lib/index.js",
+    "cordis.patch.yml",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": [
+    "dsh",
+    "dsh-plugin",
+    "notify",
+    "notification",
+    "approval",
+    "hyprland",
+    "swaync"
+  ],
+  "license": "MIT"
+}

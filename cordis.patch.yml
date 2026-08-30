@@ -1,0 +1,19 @@
+# dsh-desktop-notify bundle patch: inserts the plugin row into the profile roster.
+# Installed with:  dsh plugin --profile web add /home/uvaw/dsh/dsh-desktop-notify
+- insert:
+    - id: desktop-notify
+      name: dsh-desktop-notify
+      config:
+        notifyTurnEnd: true        # banner: ✅ "<session>" — task finished
+        notifyTurnError: true      # error → ❌ critical popup; aborted/max-tokens/blocked → ⏹ banner
+        notifyApproval: true       # policy ask → 🔔 critical "Approval needed"; policy never → 🚫 banner
+        notifyToolError: true      # ⚠ banner, per-session cooldown + optional allowlist
+        toolErrorAllowlist: []     # only these tool names notify; empty = all (e.g. ["bash"])
+        toolErrorCooldownMs: 60000 # min ms between tool-failure banners per session
+        notifyWorkflowEnd: true    # 📦 banner when a workflow run finishes
+        notifyGoalComplete: true  # 🏁 banner with the goal objective
+        notifyGoalBlocked: true   # 🛑 critical popup with the blocked reason
+        notifySubagentEnd: false  # 🤖 banner when a subagent turn ends (off: avoids noise)
+        sound: true               # play a sound on critical popups (Linux pw-play, macOS beep)
+        appName: DeepSeek Harness # shown as the notification's application name
+        soundFile: /usr/share/sounds/freedesktop/stereo/complete.oga
