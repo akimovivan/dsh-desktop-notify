@@ -20,7 +20,7 @@ until dismissed (`timeout-critical: 0`).
 ## Installation
 
 ```sh
-dsh plugin --profile web add /home/uvaw/dsh/dsh-desktop-notify
+dsh plugin --profile web add github:akimovivan/dsh-desktop-notify
 ```
 
 Then restart the profile (`dsh web`) for the bundle to load. The same command
@@ -31,7 +31,7 @@ A plain-directory install is a snapshot copy into the profile's
 refresh it. For live-edit propagation use a link install instead:
 
 ```sh
-dsh plugin --profile web add link:/home/uvaw/dsh/dsh-desktop-notify
+dsh plugin --profile web add github:akimovivan/dsh-desktop-notify
 ```
 
 ## Removal
