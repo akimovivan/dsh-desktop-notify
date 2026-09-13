@@ -4,9 +4,13 @@
 
 **Blocked by:** None (can start immediately)
 
-**Status:** ready-for-agent
+**Status:** resolved
 
-- [ ] No machine-specific absolute paths remain in the committed test source
-- [ ] Host modules are resolved relative to an installed DSH entry point, with a clear failure message when DSH is not found
-- [ ] The platform override used to suppress real notification spawns is explicit and confined to this test
-- [ ] The host-registration test still passes end-to-end in the current environment
+## Comments
+
+- 2026-09-13 — Implemented in c46d100. Resolution order: `DSH_DESKTOP_NOTIFY_DSH` env override → `npm root -g` → `dsh` binary on PATH (realpath + walk-up). Settings service prefers DSH's bundled copy (the one the running host serves plugins) with a `$DSH_HOME/profiles` fallback and a `Settings ?? default` shim for the class rename in newer releases. Platform fake applied after resolution, restored in `finally`; verified no leak into later same-process code and a clear failure message when DSH is absent.
+
+- [x] No machine-specific absolute paths remain in the committed test source
+- [x] Host modules are resolved relative to an installed DSH entry point, with a clear failure message when DSH is not found
+- [x] The platform override used to suppress real notification spawns is explicit and confined to this test
+- [x] The host-registration test still passes end-to-end in the current environment
