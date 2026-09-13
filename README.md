@@ -42,13 +42,27 @@ dsh plugin --profile web remove dsh-desktop-notify
 
 ## Configuration
 
-Defaults live in this package's `cordis.patch.yml`; override them per profile
-in `~/.dsh/profiles/<name>/cordis.patch.yml` by targeting the row id
-`desktop-notify`:
+### In the Web GUI (recommended)
+
+Open **Settings → Plugins → Plugin configuration** and use the
+**Desktop notifications** card: a master on/off switch, one toggle per event
+type, and the sound picker for critical popups (with an in-browser preview).
+Changes are written to the settings document (`~/.dsh/settings.yaml`) and
+apply **live — no restart needed**.
+
+### Via YAML
+
+The same fields can be set statically: defaults live in this package's
+`cordis.patch.yml`; override them per profile in
+`~/.dsh/profiles/<name>/cordis.patch.yml` by targeting the row id
+`desktop-notify`, or via the settings document under the `desktop-notify:`
+section. YAML values act as the base layer; the settings document (and the
+GUI card) override them per field:
 
 ```yaml
 - id: desktop-notify
   config:
+    enabled: true              # master switch for all notifications
     notifyTurnEnd: true        # banner: ✅ "<session>" — task finished
     notifyTurnError: true      # error → ❌ critical popup; aborted/max-tokens/blocked → ⏹ banner
     notifyApproval: true       # policy ask → 🔔 critical "Approval needed"; policy never → 🚫 banner
@@ -96,7 +110,8 @@ it takes precedence over `soundName`.
   try/catch.
 - On swaync, enabling Do-Not-Disturb queues popups in the control center
   instead of showing them immediately.
-- This plugin has zero dependencies (only `node:child_process`).
+- This plugin has zero runtime dependencies (only `node:child_process` plus
+  the DSH-provided `@deepseek-ai/schemastery` for the settings schema).
 
 ## License
 

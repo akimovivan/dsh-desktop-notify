@@ -1,9 +1,13 @@
 # dsh-desktop-notify bundle patch: inserts the plugin row into the profile roster.
 # Installed with:  dsh plugin --profile web add github:akimovivan/dsh-desktop-notify
+# All fields below are also editable live in DSH Web GUI → Settings → Plugins
+# → Plugin configuration ("Desktop notifications" card); the settings document
+# overrides this row per field.
 - insert:
     - id: desktop-notify
       name: dsh-desktop-notify
       config:
+        enabled: true              # master switch for all notifications
         notifyTurnEnd: true        # banner: ✅ "<session>" — task finished
         notifyTurnError: true      # error → ❌ critical popup; aborted/max-tokens/blocked → ⏹ banner
         notifyApproval: true       # policy ask → 🔔 critical "Approval needed"; policy never → 🚫 banner
