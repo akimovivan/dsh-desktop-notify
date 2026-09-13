@@ -26,12 +26,15 @@ dsh plugin --profile web add github:akimovivan/dsh-desktop-notify
 Then restart the profile (`dsh web`) for the bundle to load. The same command
 works for any other profile (e.g. `--profile tui`).
 
-A plain-directory install is a snapshot copy into the profile's
+A `github:` install materializes a snapshot into the profile's
 `node_modules`: after editing the source here, re-run the `add` command to
-refresh it. For live-edit propagation use a link install instead:
+refresh it. A local-directory install is different — pnpm symlinks the
+directory into the profile's `node_modules`, so edits to the source reach
+the installed plugin without re-running `add`. Run it from inside this
+repo's checkout (or pass an absolute path / `link:<path>` from elsewhere):
 
 ```sh
-dsh plugin --profile web add github:akimovivan/dsh-desktop-notify
+dsh plugin --profile web add .
 ```
 
 ## Removal
@@ -114,6 +117,14 @@ it takes precedence over `soundName`.
   instead of showing them immediately.
 - This plugin has zero runtime dependencies (only `node:child_process` plus
   the DSH-provided `@deepseek-ai/schemastery` for the settings schema).
+- `lib/client.js` (the settings card) has no build step on purpose: DSH's
+  browser loads it verbatim through the client module loader
+  (`window.__ModuleLoader__.load`), so it stays self-contained classic script
+  — no JSX, no TypeScript, no static imports (React comes from the injected
+  `require`) — and keeps its own ES5-flavoured style (`var`, function
+  expressions) with 2-space indent, deliberately different from
+  `lib/index.js`'s modern ESM + tabs. Don't "modernise" it or add a bundler
+  without changing how the bundle ships.
 
 ## License
 
