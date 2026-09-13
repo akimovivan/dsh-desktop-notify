@@ -4,9 +4,13 @@
 
 **Blocked by:** None (can start immediately)
 
-**Status:** ready-for-agent
+**Status:** resolved
 
-- [ ] All six preset mappings asserted for both platforms against the documented values
-- [ ] Custom sound file precedence over preset, and empty-value fallback to preset, covered
-- [ ] Fallback player spawn verified when the primary player errors (no real audio playback in tests)
-- [ ] Client-bundle preset list asserted equal to the host-side preset keys
+## Comments
+
+- 2026-09-13 — Implemented in 608d832. New `test/sound.test.mjs`: (1) parses the README preset table and asserts all six linux + darwin mappings against it; (2) custom `soundFile` precedence over the preset, with empty/whitespace falling back; (3) stubbed-spawn verification of the `pw-play` → `paplay` and `afplay` → `osascript beep` fallbacks, plus negative cases (no fallback when the primary succeeds, banners play no sound); (4) client bundle `PRESETS` list asserted equal to host `SOUND_PRESETS` keys, with per-locale labels. Minimal `@internal` seam: `resolveSoundFile` exported, `createNotifier` accepts a `deps.spawn` override. Both drift mutations (host preset path, client preset drop) verified caught; full suite green.
+
+- [x] All six preset mappings asserted for both platforms against the documented values
+- [x] Custom sound file precedence over preset, and empty-value fallback to preset, covered
+- [x] Fallback player spawn verified when the primary player errors (no real audio playback in tests)
+- [x] Client-bundle preset list asserted equal to the host-side preset keys
