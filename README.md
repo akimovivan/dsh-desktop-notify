@@ -59,9 +59,10 @@ in `~/.dsh/profiles/<name>/cordis.patch.yml` by targeting the row id
     notifyGoalComplete: true   # 🏁 banner with the goal objective
     notifyGoalBlocked: true    # 🛑 critical popup with the blocked reason
     notifySubagentEnd: false   # 🤖 banner when a subagent turn ends (off: avoids noise)
-    sound: true                # play a sound on critical popups (Linux pw-play, macOS beep)
+    sound: true                # play a sound on critical popups (Linux pw-play, macOS afplay)
     appName: DeepSeek Harness  # shown as the notification's application name
-    soundFile: /usr/share/sounds/freedesktop/stereo/complete.oga
+    soundName: complete        # preset: complete|bell|attention|message|warning|error
+    soundFile: ""              # custom sound file override; empty = use the preset above
 ```
 
 ## Notification severity
@@ -69,7 +70,24 @@ in `~/.dsh/profiles/<name>/cordis.patch.yml` by targeting the row id
 | Severity | Trigger | Linux | macOS |
 | --- | --- | --- | --- |
 | banner | completions, interruptions, auto-rejections, tool failures | `notify-send` | `display notification` |
-| critical | task error, approval needed, goal blocked | `notify-send -u critical` + `pw-play` | `display alert … as critical` + beep |
+| critical | task error, approval needed, goal blocked | `notify-send -u critical` + sound (`pw-play`, fallback `paplay`) | `display alert … as critical` + sound (`afplay`, fallback `beep`) |
+
+### Sound presets
+
+`soundName` picks one of six named presets (the GUI picker shows a preview):
+
+| `soundName` | Linux (`freedesktop-sound-theme`) | macOS (`/System/Library/Sounds`) |
+| --- | --- | --- |
+| `complete` (default) | `stereo/complete.oga` | `Glass.aiff` |
+| `bell` | `stereo/bell.oga` | `Ping.aiff` |
+| `attention` | `stereo/window-attention.oga` | `Hero.aiff` |
+| `message` | `stereo/message.oga` | `Pop.aiff` |
+| `warning` | `stereo/dialog-warning.oga` | `Submarine.aiff` |
+| `error` | `stereo/dialog-error.oga` | `Basso.aiff` |
+
+To play your own file instead of a preset, set `soundFile` to any path
+(Linux: anything `pw-play` can open; macOS: anything `afplay` can open) —
+it takes precedence over `soundName`.
 
 ## Notes
 
