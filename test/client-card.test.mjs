@@ -77,8 +77,12 @@ const scope = new FakeScopeController();
 let settingsScopeCb = null;
 let slotEntry = null;
 const effects = [];
+// Identity translator by default. The disclosure check below swaps in a
+// prefixing translator to prove headers resolve their keys through t()
+// rather than hardcoding text that happens to match.
+let translate = (key) => key;
 const ctx = {
-	locale: { register: () => () => {}, bind: () => (key) => key }, // identity translator
+	locale: { register: () => () => {}, bind: () => (key) => translate(key) },
 	inject: (names, cb) => { if (names.includes("settingsScope")) settingsScopeCb = cb; },
 	effect: (fn) => effects.push(fn()),
 	slots: {
@@ -209,15 +213,18 @@ for (const dict of ["DICT_EN", "DICT_ZH"]) {
 }
 
 // --- Every README-documented field is reachable from the card -------------------
-function controlsOf(tree) {
+// Depth-first collect of every node matching `match`; shared by the control and
+// disclosure walks below.
+function collect(tree, match) {
 	const out = [];
 	(function walk(node) {
 		if (!node || typeof node !== "object") return;
-		if (node.type === "input" || node.type === "select") out.push(node);
+		if (match(node)) out.push(node);
 		for (const child of node.children ?? []) walk(child);
 	})(tree);
 	return out;
 }
+function controlsOf(tree) { return collect(tree, (node) => node.type === "input" || node.type === "select"); }
 // Parse the documented fields straight out of the README's YAML block so this
 // coverage check stays in sync with the spec instead of a copy of it.
 const readme = readFileSync(new URL("../README.md", import.meta.url), "utf8");
@@ -226,6 +233,53 @@ assert.ok(yamlBlock, "README documents the config block as YAML");
 const docFields = [...yamlBlock[1].matchAll(/^\s{4}([A-Za-z_]\w*):/gm)].map((m) => m[1]);
 r = renderFresh();
 assert.equal(controlsOf(r.tree).length, docFields.length, "one card control per README-documented field");
+
+// --- Ticket 02: each group is a native <details> disclosure ---------------------
+function disclosuresOf(tree) { return collect(tree, (node) => node.type === "details"); }
+function summaryOf(group) { return group.children.find((c) => c && c.type === "summary"); }
+
+r = renderFresh();
+const groups = disclosuresOf(r.tree);
+assert.equal(groups.length, 3, "three group disclosures render");
+for (const g of groups) {
+	assert.ok(!g.props.open, "disclosure starts collapsed (no open prop)");
+	const summary = summaryOf(g);
+	assert.ok(summary, "each disclosure has a summary header");
+	assert.ok(String(summary.props.className).includes("dnd-group-title"), "header keeps the group-title class");
+	const chevron = summary.children.find((c) => c && c.props?.className === "dnd-group-chevron");
+	assert.ok(chevron, "header carries a chevron");
+	assert.equal(chevron.props["aria-hidden"], "true", "chevron is decorative");
+	assert.ok(controlsOf(g).length > 0, "each collapsed disclosure still contains its controls");
+}
+
+// Headers must resolve their keys through t(), not hardcode the visible text:
+// render once with a prefixing translator and read the header label back.
+translate = (key) => "«" + key + "»";
+r = renderFresh();
+const translatedHeaders = disclosuresOf(r.tree).map((g) => summaryOf(g).children.find((c) => typeof c === "string"));
+translate = (key) => key;
+assert.deepEqual(translatedHeaders, ["«eventsTitle»", "«soundTitle»", "«advancedTitle»"], "headers resolve the existing group-title locale keys through t()");
+
+// Children stay mounted inside the collapsed groups: every control except the
+// always-visible master switch still renders within a disclosure.
+const groupControls = groups.reduce((n, g) => n + controlsOf(g).length, 0);
+assert.equal(groupControls, docFields.length - 1, "all group controls still render while collapsed");
+
+// Headers stay operable when the scope is read-only and with the master off.
+const readySnapshot = scope.getSnapshot();
+scope.store.snapshot = { status: "ready", writable: false, value: { enabled: false } };
+r = renderFresh();
+const roGroups = disclosuresOf(r.tree);
+assert.equal(roGroups.length, 3, "disclosures render when the scope is read-only");
+for (const g of roGroups) {
+	assert.ok(summaryOf(g), "each read-only disclosure keeps a native summary header");
+	assert.ok(!g.props.open, "header stays collapsed with the master switch off");
+}
+// Read-only actually reached the fields (they are disabled) while the header is
+// not disabled, so a read-only scope never folds the group headers away.
+assert.equal(controlsOf(roGroups[0])[0].props.disabled, true, "read-only scope disables the field controls");
+assert.ok(!summaryOf(roGroups[0]).props.disabled, "read-only scope does not disable the header");
+scope.store.snapshot = readySnapshot;
 
 // Every checkbox is wired to its field: seed false, re-render, flip it on.
 const CHECKBOX_FIELDS = ["enabled", "notifyTurnEnd", "notifyTurnError", "notifyApproval", "notifyToolError", "notifyWorkflowEnd", "notifyGoalComplete", "notifyGoalBlocked", "notifySubagentEnd", "sound"];
