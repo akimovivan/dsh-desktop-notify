@@ -14,17 +14,17 @@ focus ring so it is keyboard-operable.
 
 **Blocked by:** 01
 
-**Status:** ready-for-agent
+**Status:** resolved
 
-- [ ] The card opens with all three groups collapsed
-- [ ] Clicking or keyboard-activating a group header expands and collapses that group, independently of the others
-- [ ] Group children stay mounted while collapsed, so an in-progress edit in an uncontrolled text field survives a collapse/expand cycle
-- [ ] Each header shows a chevron that reflects the state, the default marker is gone, and focus is visible
-- [ ] Collapse state is not persisted anywhere and no configuration field or settings-document write is introduced; a reload returns to all-collapsed
-- [ ] Headers reuse the existing group-title locale keys, and no dictionary entry is added
-- [ ] Headers remain operable when the settings scope is read-only and when the master switch is off
-- [ ] The client-card suite is extended to assert: three disclosures render, none is open on first render, each header carries its group-title key, and every control still renders inside the collapsed groups — with the existing "one control per README-documented field" and ten-checkbox assertions still passing
-- [ ] All six suites pass (each suite run directly as `node test/<file>.mjs`)
+- [x] The card opens with all three groups collapsed
+- [x] Clicking or keyboard-activating a group header expands and collapses that group, independently of the others
+- [x] Group children stay mounted while collapsed, so an in-progress edit in an uncontrolled text field survives a collapse/expand cycle
+- [x] Each header shows a chevron that reflects the state, the default marker is gone, and focus is visible
+- [x] Collapse state is not persisted anywhere and no configuration field or settings-document write is introduced; a reload returns to all-collapsed
+- [x] Headers reuse the existing group-title locale keys, and no dictionary entry is added
+- [x] Headers remain operable when the settings scope is read-only and when the master switch is off
+- [x] The client-card suite is extended to assert: three disclosures render, none is open on first render, each header carries its group-title key, and every control still renders inside the collapsed groups — with the existing "one control per README-documented field" and ten-checkbox assertions still passing
+- [x] All six suites pass (each suite run directly as `node test/<file>.mjs`)
 
 ## Comments
 
@@ -34,3 +34,16 @@ focus ring so it is keyboard-operable.
 - No open-state background change: the design tokens stop at `bg-layer-3`, so
   there is nowhere lighter to go, and three groups all shifting background would
   read as a pressed state.
+- 2026-09-13 — Implemented in 24d0ef8. The `group` helper from ticket 01 now
+  emits `<details class="dnd-group"><summary class="dnd-group-title">…</summary>`
+  with no `open` prop, so all three start collapsed on every load; the browser
+  owns the toggle and keeps the rows mounted while hidden. CSS adds a
+  `details[open]`-driven chevron, removes the default marker (`display:flex` +
+  `::-webkit-details-marker`), and a `:focus-visible` ring using
+  `--dsw-alias-state-business-primary`; no background changes on open. No
+  dictionary, schema, or settings-write change. The client-card suite grew the
+  three-disclosure, none-open, header-key, mounted-controls, and read-only/
+  master-off checks; header-key and collapsed assertions were mutation-tested
+  (hardcoded literal and default-`open` both fail the suite). Verified visually in
+  headless Chromium with a static replica: chevron points right collapsed and down
+  open, header/description stay visible, and the focus ring shows.
