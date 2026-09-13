@@ -51,8 +51,10 @@ Open **Settings → Plugins → Plugin configuration** and use the
 **Desktop notifications** card: a master on/off switch, one toggle per event
 type, the sound picker for critical popups (with an in-browser preview), a
 custom sound file field, and editable fields for the tool-failure allowlist,
-its cooldown, and the notification app name. Every documented config field is
-reachable from the card. Changes are written to the settings document
+its cooldown, and the notification app name. The controls are grouped into
+three collapsible sections — **When to notify**, **Sound**, and **Advanced** —
+each collapsed by default; click a section header to reveal its fields. Every
+documented config field is reachable from the card. Changes are written to the settings document
 (`~/.dsh/settings.yaml`) and apply **live — no restart needed**.
 
 ### Via YAML
