@@ -2,7 +2,7 @@
 // schema defaults, namespace identity, and live config swaps (GUI edits).
 // Run: node test/settings.test.mjs
 import assert from "node:assert/strict";
-import { apply, name, ConfigSchema, SOUND_PRESETS, SETTINGS_NAMESPACE } from "../lib/index.js";
+import { apply, name, ConfigSchema, SOUND_PRESETS, SETTINGS_NAMESPACE, resolveAppName } from "../lib/index.js";
 
 // ---- 1. schema: defaults complete, union enforced -------------------------
 const resolved = ConfigSchema({});
@@ -19,6 +19,13 @@ for (const preset of Object.keys(SOUND_PRESETS)) {
 assert.throws(() => ConfigSchema({ soundName: "nope" }));
 assert.throws(() => ConfigSchema({ enabled: "yes" }));
 console.log("schema defaults + union: ok");
+
+// ---- 1b. empty app name means "use the default" (like soundFile = preset) ---
+assert.equal(resolveAppName(""), "DeepSeek Harness", "empty app name falls back to the default");
+assert.equal(resolveAppName("   "), "DeepSeek Harness", "whitespace-only app name falls back to the default");
+assert.equal(resolveAppName(undefined), "DeepSeek Harness", "absent app name falls back to the default");
+assert.equal(resolveAppName("My DSH"), "My DSH", "a real app name passes through untouched");
+console.log("app name fallback: ok");
 
 // ---- 2. namespace identity matches the client card key ---------------------
 assert.equal(SETTINGS_NAMESPACE, "desktop-notify");

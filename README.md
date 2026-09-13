@@ -46,9 +46,11 @@ dsh plugin --profile web remove dsh-desktop-notify
 
 Open **Settings → Plugins → Plugin configuration** and use the
 **Desktop notifications** card: a master on/off switch, one toggle per event
-type, and the sound picker for critical popups (with an in-browser preview).
-Changes are written to the settings document (`~/.dsh/settings.yaml`) and
-apply **live — no restart needed**.
+type, the sound picker for critical popups (with an in-browser preview), a
+custom sound file field, and editable fields for the tool-failure allowlist,
+its cooldown, and the notification app name. Every documented config field is
+reachable from the card. Changes are written to the settings document
+(`~/.dsh/settings.yaml`) and apply **live — no restart needed**.
 
 ### Via YAML
 
@@ -74,7 +76,7 @@ GUI card) override them per field:
     notifyGoalBlocked: true    # 🛑 critical popup with the blocked reason
     notifySubagentEnd: false   # 🤖 banner when a subagent turn ends (off: avoids noise)
     sound: true                # play a sound on critical popups (Linux pw-play, macOS afplay)
-    appName: DeepSeek Harness  # shown as the notification's application name
+    appName: DeepSeek Harness  # shown as the notification's application name; empty = default
     soundName: complete        # preset: complete|bell|attention|message|warning|error
     soundFile: ""              # custom sound file override; empty = use the preset above
 ```
