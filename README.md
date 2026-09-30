@@ -38,6 +38,19 @@ repo's checkout (or pass an absolute path / `link:<path>` from elsewhere):
 dsh plugin --profile web add .
 ```
 
+A link install resolves `@deepseek-ai/schemastery` (which the host provides at
+runtime) from the *plugin's* directory, because that is where the symlink points
+— not from the profile's `node_modules`. Point it at the profile's copy once per
+checkout, or the host fails to load the plugin with `ERR_MODULE_NOT_FOUND`:
+
+```sh
+mkdir -p node_modules/@deepseek-ai
+ln -sfn ~/.dsh/profiles/web/node_modules/@deepseek-ai/schemastery \
+  node_modules/@deepseek-ai/schemastery
+```
+
+`node_modules/` is gitignored, so this is per-machine setup, not a repo change.
+
 ## Removal
 
 ```sh
