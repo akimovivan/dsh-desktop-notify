@@ -6,6 +6,7 @@ notable things happen in DSH so you don't have to keep staring at the browser:
 - ✅ task finished (turn end)
 - ❌ task failed (turn ended with an error) — critical popup + sound
 - 🔔 approval needed (a tool requests your permission) — critical popup + sound
+- ❓ question asked (the agent calls `ask_user_question` and waits) — critical popup + sound
 - 🚫 permission request auto-rejected (approval policy `never`)
 - ⚠ tool call failed (throttled + allowlist)
 - 📦 workflow run finished
@@ -73,6 +74,7 @@ GUI card) override them per field:
     notifyTurnEnd: true        # banner: ✅ "<session>" — task finished
     notifyTurnError: true      # error → ❌ critical popup; aborted/max-tokens/blocked → ⏹ banner
     notifyApproval: true       # policy ask → 🔔 critical "Approval needed"; policy never → 🚫 banner
+    notifyUserQuestion: true   # ❓ critical popup when the agent asks a question and waits
     notifyToolError: true      # ⚠ banner, per-session cooldown + optional allowlist
     toolErrorAllowlist: []     # only these tool names notify; empty = all (e.g. ["bash"])
     toolErrorCooldownMs: 60000 # min ms between tool-failure banners per session
@@ -91,7 +93,7 @@ GUI card) override them per field:
 | Severity | Trigger | Linux | macOS |
 | --- | --- | --- | --- |
 | banner | completions, interruptions, auto-rejections, tool failures | `notify-send` | `display notification` |
-| critical | task error, approval needed, goal blocked | `notify-send -u critical` + sound (`pw-play`, fallback `paplay`) | `display alert … as critical` + sound (`afplay`, fallback `beep`) |
+| critical | task error, approval needed, question asked, goal blocked | `notify-send -u critical` + sound (`pw-play`, fallback `paplay`) | `display alert … as critical` + sound (`afplay`, fallback `beep`) |
 
 ### Sound presets
 

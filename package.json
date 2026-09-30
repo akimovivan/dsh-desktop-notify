@@ -1,7 +1,7 @@
 {
   "name": "dsh-desktop-notify",
   "version": "1.0.0",
-  "description": "Desktop notifications for DeepSeek Harness: turn finished/failed, approval needed, tool failures, goal completed/blocked, workflow finished (Linux notify-send via swaync/dunst/mako, macOS osascript)",
+  "description": "Desktop notifications for DeepSeek Harness: turn finished/failed, approval needed, question asked, tool failures, goal completed/blocked, workflow finished (Linux notify-send via swaync/dunst/mako, macOS osascript)",
   "type": "module",
   "main": "lib/index.js",
   "exports": {

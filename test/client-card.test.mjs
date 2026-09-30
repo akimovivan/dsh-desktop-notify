@@ -207,7 +207,7 @@ assert.equal(scope.getSnapshot().value.soundName, "bell", "preset picker wrote t
 for (const dict of ["DICT_EN", "DICT_ZH"]) {
 	const blockMatch = source.match(new RegExp("var " + dict + " = \\{([\\s\\S]*?)\\n    \\}"));
 	assert.ok(blockMatch, "client bundle must declare " + dict);
-	for (const key of ["advancedTitle", "toolErrorAllowlist", "toolErrorCooldownMs", "appName", "soundFile"]) {
+	for (const key of ["advancedTitle", "toolErrorAllowlist", "toolErrorCooldownMs", "appName", "soundFile", "events_notifyUserQuestion", "events_notifyUserQuestion_hint"]) {
 		assert.ok(blockMatch[1].includes(key + ":"), dict + " must label '" + key + "'");
 	}
 }
@@ -282,17 +282,29 @@ assert.ok(!summaryOf(roGroups[0]).props.disabled, "read-only scope does not disa
 scope.store.snapshot = readySnapshot;
 
 // Every checkbox is wired to its field: seed false, re-render, flip it on.
-const CHECKBOX_FIELDS = ["enabled", "notifyTurnEnd", "notifyTurnError", "notifyApproval", "notifyToolError", "notifyWorkflowEnd", "notifyGoalComplete", "notifyGoalBlocked", "notifySubagentEnd", "sound"];
+const CHECKBOX_FIELDS = ["enabled", "notifyTurnEnd", "notifyTurnError", "notifyApproval", "notifyUserQuestion", "notifyToolError", "notifyWorkflowEnd", "notifyGoalComplete", "notifyGoalBlocked", "notifySubagentEnd", "sound"];
 for (let i = 0; i < CHECKBOX_FIELDS.length; i += 1) {
 	const field = CHECKBOX_FIELDS[i];
 	scope.set(field, false);
 	r = renderFresh();
 	const boxes = controlsOf(r.tree).filter((c) => c.type === "input" && c.props.type === "checkbox");
-	assert.equal(boxes.length, CHECKBOX_FIELDS.length, "ten checkboxes on the card");
+	assert.equal(boxes.length, CHECKBOX_FIELDS.length, `${CHECKBOX_FIELDS.length} checkboxes on the card`);
 	assert.equal(boxes[i].props.checked, false, field + " checkbox reflects its seeded value");
 	boxes[i].props.onChange({ target: { checked: true } });
 	assert.equal(scope.getSnapshot().value[field], true, field + " checkbox wrote through the scope");
 }
+
+// The question toggle sits next to the approval toggle it is tiered with.
+// rowsOf only sees the div-tagged text rows, so read the checkbox rows from
+// their dnd-field wrapper, which carries the field name as its React key.
+const eventFields = collect(r.tree, (n) => n.type === "div" && n.props.className === "dnd-field")
+	.map((n) => n.props.key)
+	.filter((key) => typeof key === "string" && key.startsWith("notify"));
+assert.deepEqual(
+	eventFields,
+	["notifyTurnEnd", "notifyTurnError", "notifyApproval", "notifyUserQuestion", "notifyToolError", "notifyWorkflowEnd", "notifyGoalComplete", "notifyGoalBlocked", "notifySubagentEnd"],
+	"the When-to-notify group keeps its field order, with the question toggle right after the approval toggle",
+);
 
 // --- Teardown effects dispose cleanly -------------------------------------------
 for (const d of effects) if (typeof d === "function") d();

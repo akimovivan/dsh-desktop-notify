@@ -6,10 +6,11 @@ import { apply, name, ConfigSchema, SOUND_PRESETS, SETTINGS_NAMESPACE, resolveAp
 
 // ---- 1. schema: defaults complete, union enforced -------------------------
 const resolved = ConfigSchema({});
-for (const key of ["enabled", "notifyTurnEnd", "notifyTurnError", "notifyApproval", "notifyToolError", "toolErrorAllowlist", "toolErrorCooldownMs", "notifyWorkflowEnd", "notifyGoalComplete", "notifyGoalBlocked", "notifySubagentEnd", "sound", "appName", "soundName", "soundFile"]) {
+for (const key of ["enabled", "notifyTurnEnd", "notifyTurnError", "notifyApproval", "notifyUserQuestion", "notifyToolError", "toolErrorAllowlist", "toolErrorCooldownMs", "notifyWorkflowEnd", "notifyGoalComplete", "notifyGoalBlocked", "notifySubagentEnd", "sound", "appName", "soundName", "soundFile"]) {
 	assert.ok(key in resolved, `schema default missing: ${key}`);
 }
 assert.equal(resolved.enabled, true);
+assert.equal(resolved.notifyUserQuestion, true);
 assert.equal(resolved.soundName, "complete");
 assert.equal(resolved.soundFile, "");
 assert.deepEqual(resolved.toolErrorAllowlist, []);
@@ -76,6 +77,9 @@ assert.ok(fakeSettings.lastScope, "plugin must register its namespace");
 const session = { id: "sess-1", header: { id: "sess-1" }, events: [{ type: "session/title", data: { title: "Test Session" } }] };
 const fire = (event) => fakeCtx.handlers["session/event"](session, event);
 const notifications = () => logs.filter((l) => /dsh-desktop-notify\] (banner|alert):/.test(l));
+// Fire one event against an emptied log and return what it produced. The
+// earlier assertions below accumulate on purpose, so they count cumulatively.
+const notifiedBy = (event) => { logs.length = 0; fire(event); return notifications(); };
 
 // master off → silent
 fakeSettings.lastScope.update({ enabled: false });
@@ -115,5 +119,47 @@ assert.equal(notifications().length, 4, "notifyWorkflowEnd=false must silence wo
 fakeSettings.lastScope.update({ soundName: "bell", soundFile: "" });
 assert.equal(fakeSettings.lastScope.get().soundName, "bell");
 
+// The section below empties the log between events, so bank the running total
+// the closing summary reports.
+let asked = 0;
+const beforeAsk = notifications().length;
+
+// ---- 4. an asked question pops a critical alert with the question text -----
+// A `tool/call` for ask_user_question is the one call that blocks on a human,
+// so it gets the approval tier plus the question text.
+const askCall = (questions) => ({ type: "tool/call", data: { callId: "call-1", name: "ask_user_question", arguments: JSON.stringify({ questions }) } });
+
+let sent = notifiedBy(askCall([{ id: "q1", question: "Which\n  database should I use?" }]));
+assert.equal(sent.length, 1, "an asked question notifies");
+asked += sent.length;
+assert.match(sent[0], /alert: .*question asked/, "a question is a critical popup, not a banner");
+assert.match(sent[0], /Which database should I use\?/, "the question text is in the body");
+assert.ok(!/\n/.test(sent[0]), "the question text is collapsed to one line");
+
+sent = notifiedBy(askCall([
+	{ id: "q1", question: "Which database?" },
+	{ id: "q2", question: "Which region?" }
+]));
+assert.equal(sent.length, 1);
+asked += sent.length;
+assert.match(sent[0], /\(\+1 more\)/, "a larger batch counts the questions it did not show");
+
+// A call the model garbled never reaches the tool, so nothing waits: silent,
+// and the tool-failure banner owns that case instead.
+for (const args of ["{not json", JSON.stringify({ questions: [] }), JSON.stringify({ questions: [{ id: "q1" }] }), ""]) {
+	assert.equal(notifiedBy({ type: "tool/call", data: { callId: "call-2", name: "ask_user_question", arguments: args } }).length, 0, `unreadable ask arguments stay silent: ${args}`);
+}
+
+// Other tool calls are not question calls.
+assert.equal(notifiedBy({ type: "tool/call", data: { callId: "call-3", name: "bash", arguments: JSON.stringify({ questions: [{ question: "hi?" }] }) } }).length, 0, "a different tool call never notifies as a question");
+
+// Per-event toggle silences it, and so does the master switch.
+fakeSettings.lastScope.update({ notifyUserQuestion: false });
+assert.equal(notifiedBy(askCall([{ id: "q1", question: "Which database?" }])).length, 0, "notifyUserQuestion=false must silence question popups");
+fakeSettings.lastScope.update({ notifyUserQuestion: true, enabled: false });
+assert.equal(notifiedBy(askCall([{ id: "q1", question: "Which database?" }])).length, 0, "the master switch silences question popups");
+fakeSettings.lastScope.update({ enabled: true });
+console.log("question asked: ok");
+
 console.log("live config swaps: ok");
-console.log(`\nall checks passed (${notifications().length} notifications observed)`);
+console.log(`\nall checks passed (${beforeAsk + asked} notifications observed)`);

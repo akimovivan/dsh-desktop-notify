@@ -11,6 +11,7 @@
         notifyTurnEnd: true        # banner: ✅ "<session>" — task finished
         notifyTurnError: true      # error → ❌ critical popup; aborted/max-tokens/blocked → ⏹ banner
         notifyApproval: true       # policy ask → 🔔 critical "Approval needed"; policy never → 🚫 banner
+        notifyUserQuestion: true   # ❓ critical popup when the agent asks a question and waits
         notifyToolError: true      # ⚠ banner, per-session cooldown + optional allowlist
         toolErrorAllowlist: []     # only these tool names notify; empty = all (e.g. ["bash"])
         toolErrorCooldownMs: 60000 # min ms between tool-failure banners per session
